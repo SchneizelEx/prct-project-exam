@@ -14,7 +14,7 @@ return [
     'app' => [
         // ใช้เป็น base สำหรับ session cookie / รหัสลับ csrf
         'timezone' => 'Asia/Bangkok',
-        // ถ้า deploy ไว้ที่ sub-path ของโดเมน (เช่น https://apps.prcs.ac.th/project-exam/)
+        // ถ้า deploy ไว้ที่ sub-path ของโดเมน (เช่น https://www.prcs.ac.th/project-exam/)
         // ให้ใส่ '/project-exam' — ถ้า deploy ที่ root ของโดเมนให้เว้นว่าง ''
         'base_path' => '',
     ],
