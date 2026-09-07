@@ -49,4 +49,5 @@ require __DIR__ . '/../src/partials/header.php';
         </div>
     </div>
 </div>
+<?php require __DIR__ . '/../src/partials/approved_schedule.php'; ?>
 <?php require __DIR__ . '/../src/partials/footer.php'; ?>

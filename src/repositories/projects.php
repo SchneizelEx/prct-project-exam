@@ -90,6 +90,34 @@ function projects_count_approved_for_exam_day(PDO $pdo, int $examDayId): int
 }
 
 /**
+ * รายชื่อโครงงานที่ได้รับอนุมัติให้เข้าสอบทั้งหมด พร้อมคิว/เวลาสอบ เรียงตามวันเวลาสอบ (ใช้แสดงหน้าแรก/หน้า login)
+ */
+function projects_public_approved_schedule(PDO $pdo): array
+{
+    $stmt = $pdo->query(
+        PROJECT_DETAIL_SELECT . " WHERE p.status = 'approved' ORDER BY e.exam_date, e.start_time, p.approved_at"
+    );
+    $approved = $stmt->fetchAll();
+
+    $byDay = [];
+    foreach ($approved as $p) {
+        $byDay[$p['exam_day_id']]['start'] = $p['exam_start_time'];
+        $byDay[$p['exam_day_id']]['projects'][] = $p;
+    }
+
+    $schedule = [];
+    foreach ($byDay as $day) {
+        foreach (rules_compute_queue($day['projects'], $day['start']) as $q) {
+            $schedule[] = $q;
+        }
+    }
+
+    usort($schedule, fn($a, $b) => [$a['exam_date'], $a['slot_start']] <=> [$b['exam_date'], $b['slot_start']]);
+
+    return $schedule;
+}
+
+/**
  * true ถ้ามีนักเรียนคนใดคนหนึ่งใน $studentIds ที่มีโครงงาน pending/approved อยู่แล้วในวันสอบนี้
  */
 function projects_student_has_active_registration(PDO $pdo, array $studentIds, int $examDayId): bool
