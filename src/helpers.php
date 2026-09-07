@@ -26,7 +26,8 @@ function flash_take(): array
 
 function base_url(string $path = ''): string
 {
-    return '/' . ltrim($path, '/');
+    $basePath = defined('APP_BASE_PATH') ? APP_BASE_PATH : '';
+    return $basePath . '/' . ltrim($path, '/');
 }
 
 function is_post(): bool

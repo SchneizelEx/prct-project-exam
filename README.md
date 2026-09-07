@@ -62,6 +62,45 @@ storage/      ไฟล์อัปโหลด (นอก webroot, ไม่ co
 4. ตรวจสอบว่า `storage/uploads/` เขียนได้โดย user ของ Apache (เช่น `www-data`)
 5. รัน `php bin/create_admin.php ...` บนเซิร์ฟเวอร์เพื่อสร้างบัญชี admin คนแรก
 
+### กรณี deploy ไว้ที่ sub-path ของโดเมนเดิม (ไม่ใช่ root)
+
+ตัวอย่าง: เว็บอยู่ที่ `https://apps.prcs.ac.th/project-exam/` (โดเมน `apps.prcs.ac.th` มี VirtualHost อยู่แล้วสำหรับแอปอื่นๆ) และเก็บไฟล์ไว้ที่ `/var/www/html/project-exam`
+
+**1. เพิ่ม `config/config.php`** ให้ระบุ `base_path` ตามชื่อ path (ไม่ต้องแก้อย่างอื่น):
+```php
+'app' => [
+    'timezone' => 'Asia/Bangkok',
+    'base_path' => '/project-exam',
+],
+```
+ค่านี้ทำให้ลิงก์/redirect ทั้งหมดในระบบ (สร้างผ่านฟังก์ชัน `base_url()` ทุกจุด) ใส่ prefix `/project-exam` ให้อัตโนมัติ
+
+**2. แก้ไฟล์ VirtualHost ของ `apps.prcs.ac.th`** (ไฟล์ config เดิมของโดเมนนี้ เช่น `/etc/apache2/sites-available/apps.prcs.ac.th.conf`) โดย**ไม่ต้องสร้าง VirtualHost ใหม่** — ให้เพิ่ม `Alias` เข้าไปในบล็อก `<VirtualHost>` เดิม ให้ path `/project-exam` ชี้ไปที่โฟลเดอร์ `public/` ของโปรเจกต์ (สำคัญ: ต้องชี้ที่ `public/` เท่านั้น ไม่ใช่ `/var/www/html/project-exam` ตรงๆ เพื่อไม่ให้เข้าถึง `src/`, `config/`, `storage/` จากเว็บได้):
+
+```apache
+<VirtualHost *:443>
+    ServerName apps.prcs.ac.th
+    # ... directive เดิมของ vhost นี้ (SSL, DocumentRoot ของแอปอื่น ฯลฯ) ...
+
+    Alias /project-exam /var/www/html/project-exam/public
+
+    <Directory /var/www/html/project-exam/public>
+        AllowOverride All
+        Require all granted
+    </Directory>
+</VirtualHost>
+```
+
+**3. ตรวจ syntax แล้ว reload Apache**:
+```bash
+sudo apachectl configtest
+sudo systemctl reload apache2
+```
+
+จากนั้นเข้า `https://apps.prcs.ac.th/project-exam/` ควรเจอหน้า login/หน้าแรกตามปกติ ลิงก์ภายในทั้งหมด (login, dashboard แต่ละ role, download.php) จะพา path `/project-exam` ไปด้วยเองทุกจุด ไม่ต้องแก้โค้ดเพิ่ม
+
+> หมายเหตุ: ระบบไม่ได้ใช้ `.htaccess`/`mod_rewrite` (ไม่มี pretty URL) จึงไม่ต้องกังวลเรื่อง `RewriteBase`
+
 ## Deploy ขึ้นเซิร์ฟเวอร์
 
 Deploy ด้วยมือ (ไม่มี CI/CD อัตโนมัติ) — เช่น `git pull` บนเซิร์ฟเวอร์ หรือ rsync/scp โค้ดขึ้นไปเอง

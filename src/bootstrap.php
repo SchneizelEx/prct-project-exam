@@ -12,10 +12,13 @@ $config = require $configFile;
 
 date_default_timezone_set($config['app']['timezone'] ?? 'Asia/Bangkok');
 
+// path ย่อยที่แอปถูก deploy ไว้ เช่น '/project-exam' ถ้า deploy ไว้ที่ root ให้เว้นว่าง
+define('APP_BASE_PATH', rtrim($config['app']['base_path'] ?? '', '/'));
+
 if (session_status() === PHP_SESSION_NONE) {
     session_set_cookie_params([
         'lifetime' => 0,
-        'path' => '/',
+        'path' => APP_BASE_PATH !== '' ? APP_BASE_PATH . '/' : '/',
         'httponly' => true,
         'samesite' => 'Lax',
     ]);
