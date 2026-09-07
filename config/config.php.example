@@ -1,0 +1,23 @@
+<?php
+// คัดลอกไฟล์นี้เป็น config.php แล้วใส่ค่าจริงของเซิร์ฟเวอร์
+// อย่า commit config.php (มีอยู่ใน .gitignore แล้ว)
+
+return [
+    'db' => [
+        'host' => '127.0.0.1',
+        'port' => '3306',
+        'name' => 'present_registration',
+        'user' => 'root',
+        'pass' => '',
+        'charset' => 'utf8mb4',
+    ],
+    'app' => [
+        // ใช้เป็น base สำหรับ session cookie / รหัสลับ csrf
+        'timezone' => 'Asia/Bangkok',
+    ],
+    'upload' => [
+        // path นี้ต้องอยู่นอก public/ document root
+        'storage_dir' => __DIR__ . '/../storage/uploads',
+        'max_size_bytes' => 25 * 1024 * 1024, // 25MB
+    ],
+];

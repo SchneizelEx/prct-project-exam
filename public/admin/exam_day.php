@@ -1,0 +1,60 @@
+<?php
+require_once __DIR__ . '/../../src/bootstrap.php';
+
+$user = require_role('admin');
+
+$id = (int)($_GET['id'] ?? 0);
+$day = exam_days_find($pdo, $id);
+if (!$day) {
+    http_response_code(404);
+    die('ไม่พบวันสอบ');
+}
+
+$capacity = rules_exam_day_capacity($day['start_time'], $day['end_time']);
+$allProjects = projects_all($pdo, ['exam_day_id' => $id]);
+$approved = projects_approved_for_exam_day($pdo, $id);
+$queue = rules_compute_queue($approved, $day['start_time']);
+
+$pageTitle = 'รายละเอียดวันสอบ ' . $day['exam_date'];
+require __DIR__ . '/../../src/partials/header.php';
+?>
+<h3 class="mb-1">วันสอบ <?= h($day['exam_date']) ?></h3>
+<p class="text-muted">เวลา <?= h(substr($day['start_time'], 0, 5)) ?> - <?= h(substr($day['end_time'], 0, 5)) ?>
+    | ความจุ <?= $capacity ?> โครงงาน | อนุมัติแล้ว <?= count($approved) ?>/<?= $capacity ?></p>
+
+<h5 class="mt-4">คิวสอบ (เรียงตามเวลาที่ครูอนุมัติ)</h5>
+<table class="table table-bordered bg-white">
+    <thead><tr><th>ลำดับ</th><th>เวลา</th><th>โครงงาน</th><th>ที่ปรึกษา</th></tr></thead>
+    <tbody>
+    <?php if (!$queue): ?>
+        <tr><td colspan="4" class="text-center text-muted">ยังไม่มีโครงงานที่ได้รับอนุมัติ</td></tr>
+    <?php endif; ?>
+    <?php foreach ($queue as $q): ?>
+        <tr>
+            <td><?= $q['queue_no'] ?></td>
+            <td><?= h($q['slot_start']) ?> - <?= h($q['slot_end']) ?></td>
+            <td><a href="<?= base_url('admin/projects.php?id=' . $q['id']) ?>"><?= h($q['title']) ?></a></td>
+            <td><?= h($q['advisor_name']) ?></td>
+        </tr>
+    <?php endforeach; ?>
+    </tbody>
+</table>
+
+<h5 class="mt-4">โครงงานทั้งหมดในวันสอบนี้</h5>
+<table class="table table-bordered bg-white">
+    <thead><tr><th>โครงงาน</th><th>ที่ปรึกษา</th><th>ลงทะเบียนโดย</th><th>สถานะ</th></tr></thead>
+    <tbody>
+    <?php foreach ($allProjects as $p): ?>
+        <tr>
+            <td><?= h($p['title']) ?></td>
+            <td><?= h($p['advisor_name']) ?></td>
+            <td><?= h($p['registered_by_name']) ?></td>
+            <td><span class="badge <?= project_status_badge_class($p['status']) ?>"><?= h(project_status_label($p['status'])) ?></span></td>
+        </tr>
+    <?php endforeach; ?>
+    <?php if (!$allProjects): ?>
+        <tr><td colspan="4" class="text-center text-muted">ยังไม่มีการลงทะเบียน</td></tr>
+    <?php endif; ?>
+    </tbody>
+</table>
+<?php require __DIR__ . '/../../src/partials/footer.php'; ?>

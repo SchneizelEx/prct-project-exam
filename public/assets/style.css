@@ -1,0 +1,10 @@
+body {
+    background-color: #f5f6f8;
+}
+.table td, .table th {
+    vertical-align: middle;
+}
+.badge-status-pending { background-color: #ffc107; color: #212529; }
+.badge-status-approved { background-color: #198754; }
+.badge-status-rejected { background-color: #dc3545; }
+.badge-status-cancelled { background-color: #6c757d; }
