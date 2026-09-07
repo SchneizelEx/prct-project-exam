@@ -164,6 +164,9 @@ require __DIR__ . '/../../src/partials/header.php';
             ค่า role รับได้ทั้ง <code>admin</code>/<code>teacher</code>/<code>student</code> หรือ ผู้ดูแลระบบ/ครู/นักเรียน<br>
             ตัวอย่าง: <code>student,student10,,นักเรียนสิบ ตัวอย่าง,S010,</code>
         </p>
+        <p class="mb-2">
+            <a href="<?= base_url('admin/csv_template.php') ?>" class="btn btn-sm btn-outline-secondary">ดาวน์โหลดไฟล์ตัวอย่าง (CSV)</a>
+        </p>
         <form method="post" enctype="multipart/form-data" class="row g-2">
             <?= csrf_field() ?>
             <input type="hidden" name="action" value="import_csv">
