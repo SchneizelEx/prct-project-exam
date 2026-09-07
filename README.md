@@ -62,20 +62,13 @@ storage/      ไฟล์อัปโหลด (นอก webroot, ไม่ co
 4. ตรวจสอบว่า `storage/uploads/` เขียนได้โดย user ของ Apache (เช่น `www-data`)
 5. รัน `php bin/create_admin.php ...` บนเซิร์ฟเวอร์เพื่อสร้างบัญชี admin คนแรก
 
-## Deploy อัตโนมัติผ่าน GitHub Actions
+## Deploy ขึ้นเซิร์ฟเวอร์
 
-`.github/workflows/deploy.yml` จะ rsync โค้ดไปยังเซิร์ฟเวอร์ Apache ผ่าน SSH ทุกครั้งที่ push เข้า `main`
-ต้องตั้งค่า GitHub Secrets ก่อนใช้งาน (Settings > Secrets and variables > Actions):
+Deploy ด้วยมือ (ไม่มี CI/CD อัตโนมัติ) — เช่น `git pull` บนเซิร์ฟเวอร์ หรือ rsync/scp โค้ดขึ้นไปเอง
+สิ่งที่ต้องระวังทุกครั้งที่ deploy:
 
-| Secret | คำอธิบาย |
-|---|---|
-| `SSH_HOST` | โฮสต์/IP ของเซิร์ฟเวอร์ |
-| `SSH_USER` | ผู้ใช้สำหรับ SSH |
-| `SSH_KEY` | private key สำหรับ SSH |
-| `SSH_PORT` | พอร์ต SSH (ปกติ 22) |
-| `DEPLOY_PATH` | path ปลายทางบนเซิร์ฟเวอร์ เช่น `/var/www/present-registration` |
-
-Workflow จะไม่ deploy ทับ `config/config.php` และ `storage/uploads/` (ข้อมูลเฉพาะของเซิร์ฟเวอร์) และไม่รัน migration ฐานข้อมูลให้อัตโนมัติ — การเปลี่ยนแปลง schema ต้องรันเองบนเซิร์ฟเวอร์
+- อย่าทับ `config/config.php` และ `storage/uploads/` บนเซิร์ฟเวอร์ (ข้อมูลเฉพาะของเครื่องนั้น ไม่อยู่ใน git)
+- หาก `sql/schema.sql` เปลี่ยน ต้องรัน migration/import เองบนเซิร์ฟเวอร์ ไม่มีการรันอัตโนมัติ
 
 ## ความปลอดภัย
 
