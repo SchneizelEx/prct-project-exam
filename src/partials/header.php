@@ -17,12 +17,13 @@ $user = $user ?? current_user();
         <a class="navbar-brand" href="<?= $user ? role_home_path($user['role']) : base_url('login.php') ?>">
             ระบบลงทะเบียนสอบนำเสนอโครงงาน
         </a>
-        <?php if ($user): ?>
         <div class="d-flex align-items-center gap-3">
-            <span class="text-light small"><?= h($user['full_name']) ?> (<?= h($user['role']) ?>)</span>
-            <a href="<?= base_url('logout.php') ?>" class="btn btn-outline-light btn-sm">ออกจากระบบ</a>
+            <a href="<?= base_url('guide.php') ?>" class="btn btn-outline-light btn-sm">คู่มือการใช้งาน</a>
+            <?php if ($user): ?>
+                <span class="text-light small"><?= h($user['full_name']) ?> (<?= h($user['role']) ?>)</span>
+                <a href="<?= base_url('logout.php') ?>" class="btn btn-outline-light btn-sm">ออกจากระบบ</a>
+            <?php endif; ?>
         </div>
-        <?php endif; ?>
     </div>
 </nav>
 <div class="container pb-5">

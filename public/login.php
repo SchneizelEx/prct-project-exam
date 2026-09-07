@@ -45,6 +45,9 @@ require __DIR__ . '/../src/partials/header.php';
                     </div>
                     <button type="submit" class="btn btn-primary w-100">เข้าสู่ระบบ</button>
                 </form>
+                <p class="text-center mt-3 mb-0 small">
+                    ยังไม่เคยใช้งาน? <a href="<?= base_url('guide.php') ?>">อ่านคู่มือการใช้งาน</a>
+                </p>
             </div>
         </div>
     </div>
