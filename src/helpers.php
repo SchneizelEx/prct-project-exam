@@ -38,3 +38,14 @@ function post(string $key, string $default = ''): string
 {
     return trim((string)($_POST[$key] ?? $default));
 }
+
+function generate_random_password(int $length = 8): string
+{
+    // ตัดตัวอักษร/ตัวเลขที่สับสนง่ายออก (0/O, 1/l/I)
+    $chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789';
+    $out = '';
+    for ($i = 0; $i < $length; $i++) {
+        $out .= $chars[random_int(0, strlen($chars) - 1)];
+    }
+    return $out;
+}

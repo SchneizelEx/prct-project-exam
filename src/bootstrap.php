@@ -28,6 +28,7 @@ require_once __DIR__ . '/csrf.php';
 require_once __DIR__ . '/auth.php';
 require_once __DIR__ . '/rules.php';
 require_once __DIR__ . '/uploads.php';
+require_once __DIR__ . '/csv_import.php';
 require_once __DIR__ . '/repositories/users.php';
 require_once __DIR__ . '/repositories/exam_days.php';
 require_once __DIR__ . '/repositories/projects.php';

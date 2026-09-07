@@ -3,6 +3,8 @@ require_once __DIR__ . '/../../src/bootstrap.php';
 
 $user = require_role('admin');
 
+$importResults = null;
+
 if (is_post()) {
     csrf_check_or_die();
     $action = post('action');
@@ -44,8 +46,72 @@ if (is_post()) {
             users_reset_password($pdo, $id, $newPassword);
             flash_set('success', 'ตั้งรหัสผ่านใหม่เรียบร้อยแล้ว');
         }
+    } elseif ($action === 'import_csv') {
+        $file = $_FILES['csv_file'] ?? null;
+
+        if (!$file || $file['error'] === UPLOAD_ERR_NO_FILE) {
+            flash_set('danger', 'กรุณาเลือกไฟล์ CSV');
+        } elseif ($file['error'] !== UPLOAD_ERR_OK) {
+            flash_set('danger', 'อัปโหลดไฟล์ไม่สำเร็จ (รหัสข้อผิดพลาด ' . $file['error'] . ')');
+        } elseif (strtolower(pathinfo($file['name'], PATHINFO_EXTENSION)) !== 'csv') {
+            flash_set('danger', 'ไฟล์ต้องเป็นนามสกุล .csv เท่านั้น');
+        } elseif ($file['size'] > 2 * 1024 * 1024) {
+            flash_set('danger', 'ไฟล์ต้องมีขนาดไม่เกิน 2MB');
+        } else {
+            $parsed = csv_parse_users($file['tmp_name']);
+            if ($parsed['error']) {
+                flash_set('danger', $parsed['error']);
+            } elseif (!$parsed['rows']) {
+                flash_set('danger', 'ไม่พบข้อมูลผู้ใช้ในไฟล์ CSV');
+            } else {
+                $importResults = [];
+                foreach ($parsed['rows'] as $row) {
+                    $role = csv_normalize_role($row['role']);
+                    $username = $row['username'];
+                    $fullName = $row['full_name'];
+                    $password = $row['password'];
+                    $generatedPassword = null;
+
+                    if ($role === null) {
+                        $importResults[] = ['line' => $row['line'], 'username' => $username, 'status' => 'error', 'message' => 'บทบาทไม่ถูกต้อง (ต้องเป็น admin, teacher หรือ student)'];
+                        continue;
+                    }
+                    if ($username === '' || $fullName === '') {
+                        $importResults[] = ['line' => $row['line'], 'username' => $username, 'status' => 'error', 'message' => 'ข้อมูลไม่ครบ (ต้องมี username และ full_name)'];
+                        continue;
+                    }
+                    if ($password !== '' && strlen($password) < 6) {
+                        $importResults[] = ['line' => $row['line'], 'username' => $username, 'status' => 'error', 'message' => 'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร'];
+                        continue;
+                    }
+                    if (users_find_by_username($pdo, $username)) {
+                        $importResults[] = ['line' => $row['line'], 'username' => $username, 'status' => 'error', 'message' => 'ชื่อผู้ใช้นี้มีอยู่แล้ว'];
+                        continue;
+                    }
+
+                    if ($password === '') {
+                        $password = generate_random_password();
+                        $generatedPassword = $password;
+                    }
+
+                    users_create($pdo, [
+                        'role' => $role, 'username' => $username, 'password' => $password,
+                        'full_name' => $fullName, 'email' => $row['email'], 'code' => $row['code'],
+                    ]);
+                    $importResults[] = [
+                        'line' => $row['line'],
+                        'username' => $username,
+                        'status' => 'success',
+                        'message' => $generatedPassword !== null ? 'สร้างสำเร็จ (รหัสผ่านที่สุ่มให้: ' . $generatedPassword . ')' : 'สร้างสำเร็จ',
+                    ];
+                }
+            }
+        }
     }
-    redirect(base_url('admin/users.php'));
+
+    if ($action !== 'import_csv') {
+        redirect(base_url('admin/users.php'));
+    }
 }
 
 $allUsers = users_all($pdo);
@@ -88,6 +154,54 @@ require __DIR__ . '/../../src/partials/header.php';
         </form>
     </div>
 </div>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <h5 class="card-title">นำเข้าผู้ใช้จาก CSV</h5>
+        <p class="text-muted small mb-2">
+            ไฟล์ .csv แถวหัวตารางต้องมีคอลัมน์ <code>role,username,password,full_name,code,email</code>
+            (จำเป็น: <code>role</code>, <code>username</code>, <code>full_name</code> — ส่วน <code>password</code> เว้นว่างได้ ระบบจะสุ่มให้อัตโนมัติ)
+            ค่า role รับได้ทั้ง <code>admin</code>/<code>teacher</code>/<code>student</code> หรือ ผู้ดูแลระบบ/ครู/นักเรียน<br>
+            ตัวอย่าง: <code>student,student10,,นักเรียนสิบ ตัวอย่าง,S010,</code>
+        </p>
+        <form method="post" enctype="multipart/form-data" class="row g-2">
+            <?= csrf_field() ?>
+            <input type="hidden" name="action" value="import_csv">
+            <div class="col-md-6">
+                <input type="file" name="csv_file" class="form-control" accept=".csv" required>
+            </div>
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-primary">นำเข้า</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<?php if ($importResults !== null): ?>
+    <?php
+    $successCount = count(array_filter($importResults, fn($r) => $r['status'] === 'success'));
+    $errorCount = count($importResults) - $successCount;
+    ?>
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">ผลการนำเข้า: สำเร็จ <?= $successCount ?> รายการ, ผิดพลาด <?= $errorCount ?> รายการ</h5>
+            <p class="small text-danger">รหัสผ่านที่สุ่มให้จะแสดงเพียงครั้งเดียวในตารางนี้ กรุณาบันทึกไว้ก่อนออกจากหน้านี้</p>
+            <table class="table table-sm table-bordered">
+                <thead><tr><th>แถวที่</th><th>ชื่อผู้ใช้</th><th>ผลลัพธ์</th><th>รายละเอียด</th></tr></thead>
+                <tbody>
+                <?php foreach ($importResults as $r): ?>
+                    <tr class="<?= $r['status'] === 'success' ? 'table-success' : 'table-danger' ?>">
+                        <td><?= (int)$r['line'] ?></td>
+                        <td><?= h($r['username']) ?></td>
+                        <td><?= $r['status'] === 'success' ? 'สำเร็จ' : 'ผิดพลาด' ?></td>
+                        <td><?= h($r['message']) ?></td>
+                    </tr>
+                <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+    </div>
+<?php endif; ?>
 
 <table class="table table-bordered bg-white">
     <thead>
