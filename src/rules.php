@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 const RULE_REGISTRATION_MIN_DAYS = 7;
 const RULE_APPROVAL_MIN_DAYS = 2;
-const RULE_EXAM_SLOT_MINUTES = 30;
+const RULE_EXAM_SLOT_MINUTES = 20;
 const RULE_MAX_STUDENTS_PER_PROJECT = 5;
 
 /**
