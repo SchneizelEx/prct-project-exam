@@ -108,6 +108,7 @@ function projects_public_approved_schedule(PDO $pdo): array
     $schedule = [];
     foreach ($byDay as $day) {
         foreach (rules_compute_queue($day['projects'], $day['start']) as $q) {
+            $q['member_names'] = array_map(fn($m) => $m['full_name'], projects_members($pdo, $q['id']));
             $schedule[] = $q;
         }
     }

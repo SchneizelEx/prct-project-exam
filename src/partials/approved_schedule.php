@@ -18,7 +18,10 @@ $approvedSchedule = projects_public_approved_schedule($pdo);
                         <tr>
                             <td><?= h($s['exam_date']) ?></td>
                             <td><?= h($s['slot_start']) ?> - <?= h($s['slot_end']) ?></td>
-                            <td><?= h($s['title']) ?></td>
+                            <td>
+                                <?= h($s['title']) ?>
+                                <div class="small text-muted">ผู้จัดทำ: <?= h(implode(', ', $s['member_names'])) ?></div>
+                            </td>
                             <td><?= h($s['advisor_name']) ?></td>
                         </tr>
                     <?php endforeach; ?>
