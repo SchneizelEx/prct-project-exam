@@ -35,6 +35,20 @@ function is_post(): bool
     return $_SERVER['REQUEST_METHOD'] === 'POST';
 }
 
+/**
+ * เมื่อไฟล์ที่อัปโหลดรวมกันเกิน post_max_size ของ PHP บนเซิร์ฟเวอร์ PHP จะเคลียร์ $_POST และ
+ * $_FILES ทิ้งทั้งหมดโดยไม่แจ้ง error ตรงๆ (ต่างจากไฟล์เดี่ยวเกิน upload_max_filesize ที่ยังมี
+ * $_FILES พร้อม error code) ทำให้ตรวจ CSRF แล้วดูเหมือน token ไม่ตรงกันทั้งที่ session ปกติดี
+ * ฟังก์ชันนี้เช็คแยกกรณีนี้ออกมาก่อน เพื่อแจ้งข้อความที่ตรงกับปัญหาจริง
+ */
+function is_post_size_exceeded(): bool
+{
+    return is_post()
+        && empty($_POST)
+        && empty($_FILES)
+        && (int)($_SERVER['CONTENT_LENGTH'] ?? 0) > 0;
+}
+
 function post(string $key, string $default = ''): string
 {
     return trim((string)($_POST[$key] ?? $default));
