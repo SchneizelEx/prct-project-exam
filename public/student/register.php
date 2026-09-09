@@ -3,9 +3,16 @@ require_once __DIR__ . '/../../src/bootstrap.php';
 
 $user = require_role('student');
 
+$currentStudentRecord = users_find($pdo, $user['id']);
+$currentStudentLevel = student_level_from_code($currentStudentRecord['code'] ?? null);
+
 $openDays = exam_days_open_for_registration($pdo);
 $teachers = users_all($pdo, 'teacher');
-$otherStudents = array_values(array_filter(users_all($pdo, 'student'), fn($s) => (int)$s['id'] !== $user['id']));
+$otherStudents = array_values(array_filter(
+    users_all($pdo, 'student'),
+    fn($s) => (int)$s['id'] !== $user['id']
+        && ($currentStudentLevel === null || student_level_from_code($s['code']) === $currentStudentLevel)
+));
 
 $errors = [];
 $old = ['title' => '', 'exam_day_id' => '', 'advisor_teacher_id' => '', 'member_ids' => []];
@@ -154,7 +161,12 @@ require __DIR__ . '/../../src/partials/header.php';
     </div>
 
     <div class="mb-3">
-        <label class="form-label">สมาชิกร่วมโครงงาน (นอกเหนือจากตัวเอง สูงสุด <?= RULE_MAX_STUDENTS_PER_PROJECT - 1 ?> คน)</label>
+        <label class="form-label">
+            สมาชิกร่วมโครงงาน (นอกเหนือจากตัวเอง สูงสุด <?= RULE_MAX_STUDENTS_PER_PROJECT - 1 ?> คน)
+            <?php if ($currentStudentLevel !== null): ?>
+                <span class="text-muted small">(แสดงเฉพาะนักเรียนระดับ <?= h($currentStudentLevel) ?>)</span>
+            <?php endif; ?>
+        </label>
         <div class="border rounded p-2" style="max-height:220px; overflow-y:auto;">
             <?php foreach ($otherStudents as $s): ?>
                 <div class="form-check">

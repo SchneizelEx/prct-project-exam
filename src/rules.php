@@ -66,3 +66,20 @@ function rules_validate_member_count(int $count): ?string
     }
     return null;
 }
+
+/**
+ * แยกระดับชั้นจากรหัสนักศึกษา: หลักที่ 3 ของรหัสเป็น '2' = ปวช., '3' = ปวส.
+ * เช่น 6722110001 (หลักที่ 3 = 2) เป็น ปวช., 69302010001 (หลักที่ 3 = 3) เป็น ปวส.
+ * คืนค่า null ถ้ารหัสไม่มีหรือไม่ตรงรูปแบบที่รู้จัก (จะไม่ถูกนำไปกรองรายชื่อ)
+ */
+function student_level_from_code(?string $code): ?string
+{
+    if ($code === null || strlen($code) < 3 || !ctype_digit($code)) {
+        return null;
+    }
+    return match ($code[2]) {
+        '2' => 'ปวช.',
+        '3' => 'ปวส.',
+        default => null,
+    };
+}
