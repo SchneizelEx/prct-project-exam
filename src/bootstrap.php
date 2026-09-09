@@ -15,12 +15,21 @@ date_default_timezone_set($config['app']['timezone'] ?? 'Asia/Bangkok');
 // path ย่อยที่แอปถูก deploy ไว้ เช่น '/project-exam' ถ้า deploy ไว้ที่ root ให้เว้นว่าง
 define('APP_BASE_PATH', rtrim($config['app']['base_path'] ?? '', '/'));
 
+// นักเรียนต้องเลือกสมาชิก/ครูที่ปรึกษา และอัปโหลด 2 ไฟล์ ในฟอร์มลงทะเบียน อาจใช้เวลานานกว่า
+// session lifetime ปกติของเซิร์ฟเวอร์ (มักตั้งไว้แค่ ~20-24 นาที) จึงกำหนดเองให้ยาวพอ กัน CSRF token
+// หมดอายุกลางคันจากค่า session.gc_maxlifetime เริ่มต้นของเซิร์ฟเวอร์
+$sessionLifetime = 4 * 60 * 60; // 4 ชั่วโมง
+ini_set('session.gc_maxlifetime', (string)$sessionLifetime);
+
+$isHttps = !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off';
+
 if (session_status() === PHP_SESSION_NONE) {
     session_set_cookie_params([
-        'lifetime' => 0,
+        'lifetime' => $sessionLifetime,
         'path' => APP_BASE_PATH !== '' ? APP_BASE_PATH . '/' : '/',
         'httponly' => true,
         'samesite' => 'Lax',
+        'secure' => $isHttps,
     ]);
     session_start();
 }
