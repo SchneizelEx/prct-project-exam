@@ -17,6 +17,12 @@ return [
         // ถ้า deploy ไว้ที่ sub-path ของโดเมน (เช่น https://www.prcs.ac.th/project-exam/)
         // ให้ใส่ '/project-exam' — ถ้า deploy ที่ root ของโดเมนให้เว้นว่าง ''
         'base_path' => '',
+        // โดเมนที่ถูกต้องเพียงหนึ่งเดียว (ไม่ต้องมี https://) เช่น 'www.prcs.ac.th'
+        // ตั้งค่านี้เมื่อเซิร์ฟเวอร์ตอบเว็บเดียวกันได้จากหลายโดเมน/สคีม (มี www / ไม่มี www / http / https)
+        // ระบบจะ redirect ไปโดเมนนี้ (https เสมอ) ให้อัตโนมัติก่อนเริ่ม session ทุกครั้ง
+        // ป้องกัน session คนละก้อนกันเวลาผู้ใช้เข้าคนละโดเมนกัน (ทำให้ CSRF token ไม่ตรงกัน)
+        // เว้นว่างไว้ตอนพัฒนา/ทดสอบในเครื่อง (localhost)
+        'canonical_host' => '',
     ],
     'upload' => [
         // path นี้ต้องอยู่นอก public/ document root

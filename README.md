@@ -66,14 +66,18 @@ storage/      ไฟล์อัปโหลด (นอก webroot, ไม่ co
 
 ตัวอย่าง: เว็บอยู่ที่ `https://www.prcs.ac.th/project-exam/` (โดเมน `www.prcs.ac.th` มี VirtualHost อยู่แล้วสำหรับแอปอื่นๆ) และเก็บไฟล์ไว้ที่ `/var/www/html/project-exam`
 
-**1. เพิ่ม `config/config.php`** ให้ระบุ `base_path` ตามชื่อ path (ไม่ต้องแก้อย่างอื่น):
+**1. เพิ่ม `config/config.php`** ให้ระบุ `base_path` ตามชื่อ path และ `canonical_host` เป็นโดเมนที่ถูกต้องเพียงหนึ่งเดียว:
 ```php
 'app' => [
     'timezone' => 'Asia/Bangkok',
     'base_path' => '/project-exam',
+    'canonical_host' => 'www.prcs.ac.th',
 ],
 ```
-ค่านี้ทำให้ลิงก์/redirect ทั้งหมดในระบบ (สร้างผ่านฟังก์ชัน `base_url()` ทุกจุด) ใส่ prefix `/project-exam` ให้อัตโนมัติ
+`base_path` ทำให้ลิงก์/redirect ทั้งหมดในระบบ (สร้างผ่านฟังก์ชัน `base_url()` ทุกจุด) ใส่ prefix `/project-exam` ให้อัตโนมัติ
+
+`canonical_host` **สำคัญมาก** — ถ้าเซิร์ฟเวอร์ตอบเว็บเดียวกันได้จากหลายโดเมน/สคีม (เช่นเข้าได้ทั้ง `prcs.ac.th`, `www.prcs.ac.th`, หรือ `http://` โดยไม่ redirect ไปหาโดเมนเดียว) แต่ละโดเมนจะมี session cookie เป็นคนละก้อนกัน (คนละ origin) ถ้าผู้ใช้เข้าคนละโดเมนกันระหว่างโหลดฟอร์มกับตอนกดส่ง จะเจอ error "CSRF token ไม่ตรงกัน" ทุกครั้งแบบสุ่มๆ ตั้งค่านี้ไว้ ระบบจะ redirect ไปโดเมนที่กำหนด (เป็น https เสมอ) ให้อัตโนมัติก่อนเริ่ม session ทุกครั้ง แก้ปัญหานี้ได้เด็ดขาดโดยไม่ต้องพึ่งการตั้งค่า Apache/DNS ให้ถูกต้อง 100%
+เว้นว่างไว้ตอนพัฒนา/ทดสอบในเครื่อง (localhost)
 
 **2. แก้ไฟล์ VirtualHost ของ `www.prcs.ac.th`** (ไฟล์ config เดิมของโดเมนนี้ เช่น `/etc/apache2/sites-available/www.prcs.ac.th.conf`) โดย**ไม่ต้องสร้าง VirtualHost ใหม่** — ให้เพิ่ม `Alias` เข้าไปในบล็อก `<VirtualHost>` เดิม ให้ path `/project-exam` ชี้ไปที่โฟลเดอร์ `public/` ของโปรเจกต์ (สำคัญ: ต้องชี้ที่ `public/` เท่านั้น ไม่ใช่ `/var/www/html/project-exam` ตรงๆ เพื่อไม่ให้เข้าถึง `src/`, `config/`, `storage/` จากเว็บได้):
 

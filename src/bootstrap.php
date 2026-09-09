@@ -12,6 +12,22 @@ $config = require $configFile;
 
 date_default_timezone_set($config['app']['timezone'] ?? 'Asia/Bangkok');
 
+$isHttps = !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off';
+
+// เซิร์ฟเวอร์บางเครื่องตอบทั้ง www และไม่มี www (หรือทั้ง http และ https) ให้เว็บเดียวกัน
+// โดยไม่ redirect ไปหาโดเมนเดียว ทำให้ session cookie คนละก้อนกันระหว่างสองโดเมน (คนละ origin)
+// ถ้ามีผู้ใช้เข้าคนละโดเมนกันระหว่างสร้างฟอร์มกับตอนกดส่ง CSRF token จะไม่ตรงกันทุกครั้ง
+// จึงบังคับ redirect ไปโดเมน/สคีมที่กำหนดไว้ให้แน่นอนก่อนเริ่ม session ใดๆ
+$canonicalHost = $config['app']['canonical_host'] ?? null;
+if ($canonicalHost !== null && $canonicalHost !== '') {
+    $currentHost = $_SERVER['HTTP_HOST'] ?? '';
+    if ($currentHost !== $canonicalHost || !$isHttps) {
+        $redirectUrl = 'https://' . $canonicalHost . ($_SERVER['REQUEST_URI'] ?? '/');
+        header('Location: ' . $redirectUrl, true, 301);
+        exit;
+    }
+}
+
 // path ย่อยที่แอปถูก deploy ไว้ เช่น '/project-exam' ถ้า deploy ไว้ที่ root ให้เว้นว่าง
 define('APP_BASE_PATH', rtrim($config['app']['base_path'] ?? '', '/'));
 
@@ -20,8 +36,6 @@ define('APP_BASE_PATH', rtrim($config['app']['base_path'] ?? '', '/'));
 // หมดอายุกลางคันจากค่า session.gc_maxlifetime เริ่มต้นของเซิร์ฟเวอร์
 $sessionLifetime = 4 * 60 * 60; // 4 ชั่วโมง
 ini_set('session.gc_maxlifetime', (string)$sessionLifetime);
-
-$isHttps = !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off';
 
 if (session_status() === PHP_SESSION_NONE) {
     session_set_cookie_params([
