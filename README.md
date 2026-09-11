@@ -118,7 +118,10 @@ Deploy ด้วยมือ (ไม่มี CI/CD อัตโนมัติ)
 สิ่งที่ต้องระวังทุกครั้งที่ deploy:
 
 - อย่าทับ `config/config.php` และ `storage/uploads/` บนเซิร์ฟเวอร์ (ข้อมูลเฉพาะของเครื่องนั้น ไม่อยู่ใน git)
-- หาก `sql/schema.sql` เปลี่ยน ต้องรัน migration/import เองบนเซิร์ฟเวอร์ ไม่มีการรันอัตโนมัติ
+- หาก `sql/schema.sql` เปลี่ยน (ติดตั้งใหม่) หรือมีไฟล์ใหม่ใน `sql/migrations/` (อัปเดตของเดิม) ต้องรันเองบนเซิร์ฟเวอร์ ไม่มีการรันอัตโนมัติ — ไฟล์ migration เขียนแบบ `ALTER`/`CREATE` เพิ่ม ไม่ลบข้อมูลเดิม รันได้ปลอดภัย เช่น:
+  ```bash
+  mysql -u root -p present_registration < sql/migrations/002_exam_type_evaluation.sql
+  ```
 
 ## ความปลอดภัย
 
