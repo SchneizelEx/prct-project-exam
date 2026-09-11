@@ -41,3 +41,59 @@ function exam_days_set_status(PDO $pdo, int $id, string $status): void
     $stmt = $pdo->prepare('UPDATE exam_days SET status = ? WHERE id = ?');
     $stmt->execute([$status, $id]);
 }
+
+/**
+ * รายชื่อครูที่เป็นคณะกรรมการสอบของวันนี้ (ครบทุก field จาก users)
+ */
+function exam_day_examiners_get(PDO $pdo, int $examDayId): array
+{
+    $stmt = $pdo->prepare(
+        'SELECT u.* FROM exam_day_examiners ex JOIN users u ON u.id = ex.teacher_id
+         WHERE ex.exam_day_id = ? ORDER BY u.full_name'
+    );
+    $stmt->execute([$examDayId]);
+    return $stmt->fetchAll();
+}
+
+/**
+ * แทนที่รายชื่อคณะกรรมการสอบของวันนี้ทั้งหมดด้วย $teacherIds ที่ให้มา
+ * @param int[] $teacherIds
+ */
+function exam_day_examiners_set(PDO $pdo, int $examDayId, array $teacherIds): void
+{
+    $pdo->beginTransaction();
+    try {
+        $del = $pdo->prepare('DELETE FROM exam_day_examiners WHERE exam_day_id = ?');
+        $del->execute([$examDayId]);
+
+        $ins = $pdo->prepare('INSERT INTO exam_day_examiners (exam_day_id, teacher_id) VALUES (?, ?)');
+        foreach (array_unique($teacherIds) as $teacherId) {
+            $ins->execute([$examDayId, $teacherId]);
+        }
+
+        $pdo->commit();
+    } catch (Throwable $e) {
+        $pdo->rollBack();
+        throw $e;
+    }
+}
+
+function exam_day_is_examiner(PDO $pdo, int $examDayId, int $teacherId): bool
+{
+    $stmt = $pdo->prepare('SELECT COUNT(*) FROM exam_day_examiners WHERE exam_day_id = ? AND teacher_id = ?');
+    $stmt->execute([$examDayId, $teacherId]);
+    return (int)$stmt->fetchColumn() > 0;
+}
+
+/**
+ * วันสอบทั้งหมดที่ครูคนนี้เป็นคณะกรรมการ เรียงตามวันที่
+ */
+function exam_days_for_examiner(PDO $pdo, int $teacherId): array
+{
+    $stmt = $pdo->prepare(
+        'SELECT e.* FROM exam_day_examiners ex JOIN exam_days e ON e.id = ex.exam_day_id
+         WHERE ex.teacher_id = ? ORDER BY e.exam_date, e.start_time'
+    );
+    $stmt->execute([$teacherId]);
+    return $stmt->fetchAll();
+}

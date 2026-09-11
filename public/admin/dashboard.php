@@ -39,5 +39,6 @@ require __DIR__ . '/../../src/partials/header.php';
     <a href="<?= base_url('admin/users.php') ?>" class="btn btn-primary">จัดการผู้ใช้</a>
     <a href="<?= base_url('admin/exam_days.php') ?>" class="btn btn-primary">จัดการวันสอบ</a>
     <a href="<?= base_url('admin/projects.php') ?>" class="btn btn-primary">รายการโครงงานทั้งหมด</a>
+    <a href="<?= base_url('admin/evaluation_criteria.php') ?>" class="btn btn-primary">จัดการแบบประเมินโครงการ</a>
 </div>
 <?php require __DIR__ . '/../../src/partials/footer.php'; ?>

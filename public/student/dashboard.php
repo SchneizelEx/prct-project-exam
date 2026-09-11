@@ -15,7 +15,7 @@ require __DIR__ . '/../../src/partials/header.php';
 </div>
 
 <table class="table table-bordered bg-white mb-5">
-    <thead><tr><th>โครงงาน</th><th>วันสอบ</th><th>ที่ปรึกษา</th><th>สถานะ</th><th>คิว/เวลาสอบ</th></tr></thead>
+    <thead><tr><th>โครงงาน</th><th>ประเภทสอบ</th><th>วันสอบ</th><th>ที่ปรึกษา</th><th>สถานะ</th><th>คิว/เวลาสอบ</th></tr></thead>
     <tbody>
     <?php foreach ($myProjects as $p): ?>
         <?php
@@ -32,6 +32,7 @@ require __DIR__ . '/../../src/partials/header.php';
         ?>
         <tr>
             <td><?= h($p['title']) ?></td>
+            <td><?= h(exam_type_label($p['exam_type'])) ?></td>
             <td><?= h($p['exam_date']) ?></td>
             <td><?= h($p['advisor_name']) ?></td>
             <td>
@@ -44,7 +45,7 @@ require __DIR__ . '/../../src/partials/header.php';
         </tr>
     <?php endforeach; ?>
     <?php if (!$myProjects): ?>
-        <tr><td colspan="5" class="text-center text-muted">ยังไม่มีการลงทะเบียน</td></tr>
+        <tr><td colspan="6" class="text-center text-muted">ยังไม่มีการลงทะเบียน</td></tr>
     <?php endif; ?>
     </tbody>
 </table>

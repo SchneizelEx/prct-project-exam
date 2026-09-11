@@ -6,6 +6,19 @@ const RULE_APPROVAL_MIN_DAYS = 2;
 const RULE_EXAM_SLOT_MINUTES = 20;
 const RULE_MAX_STUDENTS_PER_PROJECT = 5;
 
+const EXAM_TYPES = ['topic', 'progress', 'final'];
+const EVALUATION_TOTAL_SCORE = 60;
+
+function exam_type_label(string $type): string
+{
+    return match ($type) {
+        'topic' => 'เสนอหัวข้อ',
+        'progress' => 'นำเสนอความก้าวหน้า',
+        'final' => 'สอบจบโครงการ',
+        default => $type,
+    };
+}
+
 /**
  * จำนวนวันนับจากวันนี้ถึงวันสอบ (ค่าลบ = วันสอบผ่านไปแล้ว)
  */

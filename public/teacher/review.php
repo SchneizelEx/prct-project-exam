@@ -42,6 +42,7 @@ if (is_post()) {
 
 $members = projects_members($pdo, $id);
 $canApprove = $project['status'] === 'pending' && rules_can_approve($project['exam_date']);
+$isExaminer = $project['status'] === 'approved' && exam_day_is_examiner($pdo, (int)$project['exam_day_id'], $user['id']);
 
 $pageTitle = $project['title'];
 require __DIR__ . '/../../src/partials/header.php';
@@ -50,6 +51,7 @@ require __DIR__ . '/../../src/partials/header.php';
 <p><span class="badge <?= project_status_badge_class($project['status']) ?>"><?= h(project_status_label($project['status'])) ?></span></p>
 
 <ul class="list-group mb-3">
+    <li class="list-group-item">ประเภทการสอบ: <?= h(exam_type_label($project['exam_type'])) ?></li>
     <li class="list-group-item">วันสอบ: <?= h($project['exam_date']) ?> เวลา <?= h(substr($project['exam_start_time'],0,5)) ?>-<?= h(substr($project['exam_end_time'],0,5)) ?>
         (เหลือ <?= rules_days_until($project['exam_date']) ?> วัน)</li>
     <li class="list-group-item">ลงทะเบียนโดย: <?= h($project['registered_by_name']) ?> เมื่อ <?= h($project['created_at']) ?></li>
@@ -83,6 +85,10 @@ require __DIR__ . '/../../src/partials/header.php';
     </div>
 <?php elseif ($project['status'] === 'pending'): ?>
     <div class="alert alert-warning">เลยกำหนดอนุมัติแล้ว (ต้องอนุมัติก่อนวันสอบอย่างน้อย <?= RULE_APPROVAL_MIN_DAYS ?> วัน) กรุณาติดต่อผู้ดูแลระบบ</div>
+<?php endif; ?>
+
+<?php if ($isExaminer): ?>
+    <a href="<?= base_url('teacher/score_project.php?project_id=' . $project['id']) ?>" class="btn btn-outline-primary mt-2">ให้คะแนนสอบ (คณะกรรมการ)</a>
 <?php endif; ?>
 
 <a href="<?= base_url('teacher/dashboard.php') ?>" class="btn btn-link mt-3">กลับไปหน้ารายการ</a>

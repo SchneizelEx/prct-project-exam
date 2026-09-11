@@ -142,6 +142,7 @@ function projects_student_has_active_registration(PDO $pdo, array $studentIds, i
 function projects_create(
     PDO $pdo,
     string $title,
+    string $examType,
     int $advisorTeacherId,
     int $examDayId,
     int $registeredBy,
@@ -153,10 +154,10 @@ function projects_create(
     try {
         $stmt = $pdo->prepare(
             'INSERT INTO projects
-                (title, advisor_teacher_id, exam_day_id, registered_by, report_docx_path, presentation_pptx_path, status)
-             VALUES (?, ?, ?, ?, ?, ?, \'pending\')'
+                (title, exam_type, advisor_teacher_id, exam_day_id, registered_by, report_docx_path, presentation_pptx_path, status)
+             VALUES (?, ?, ?, ?, ?, ?, ?, \'pending\')'
         );
-        $stmt->execute([$title, $advisorTeacherId, $examDayId, $registeredBy, $reportPath, $presentationPath]);
+        $stmt->execute([$title, $examType, $advisorTeacherId, $examDayId, $registeredBy, $reportPath, $presentationPath]);
         $projectId = (int)$pdo->lastInsertId();
 
         $memberStmt = $pdo->prepare('INSERT INTO project_members (project_id, student_id) VALUES (?, ?)');

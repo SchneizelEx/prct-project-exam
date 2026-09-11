@@ -58,5 +58,6 @@ require_once __DIR__ . '/csv_import.php';
 require_once __DIR__ . '/repositories/users.php';
 require_once __DIR__ . '/repositories/exam_days.php';
 require_once __DIR__ . '/repositories/projects.php';
+require_once __DIR__ . '/repositories/evaluation.php';
 
 $pdo = db_connect($config['db']);

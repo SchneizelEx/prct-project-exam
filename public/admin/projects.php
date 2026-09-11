@@ -21,6 +21,7 @@ if ($detailId > 0) {
         die('ไม่พบโครงงาน');
     }
     $members = projects_members($pdo, $detailId);
+    $totalScore = evaluation_total_score($pdo, $detailId);
     $pageTitle = $project['title'];
     require __DIR__ . '/../../src/partials/header.php';
     ?>
@@ -32,6 +33,7 @@ if ($detailId > 0) {
         <?php endif; ?>
     </p>
     <ul class="list-group mb-3">
+        <li class="list-group-item">ประเภทการสอบ: <?= h(exam_type_label($project['exam_type'])) ?></li>
         <li class="list-group-item">ครูที่ปรึกษา: <?= h($project['advisor_name']) ?></li>
         <li class="list-group-item">วันสอบ: <?= h($project['exam_date']) ?> เวลา <?= h(substr($project['exam_start_time'],0,5)) ?>-<?= h(substr($project['exam_end_time'],0,5)) ?></li>
         <li class="list-group-item">ลงทะเบียนโดย: <?= h($project['registered_by_name']) ?> เมื่อ <?= h($project['created_at']) ?></li>
@@ -44,6 +46,17 @@ if ($detailId > 0) {
             |
             <a href="<?= h(base_url('download.php?project_id=' . $project['id'] . '&type=presentation')) ?>">ไฟล์นำเสนอ (.pptx)</a>
         </li>
+        <?php if ($project['status'] === 'approved'): ?>
+            <li class="list-group-item">
+                คะแนนประเมิน:
+                <?php if ($totalScore !== null): ?>
+                    <strong><?= $totalScore ?>/<?= EVALUATION_TOTAL_SCORE ?></strong>
+                <?php else: ?>
+                    <span class="text-muted">ยังไม่ให้คะแนน</span>
+                <?php endif; ?>
+                <a href="<?= base_url('teacher/score_project.php?project_id=' . $project['id']) ?>" class="ms-2">ดู/แก้ไขคะแนน</a>
+            </li>
+        <?php endif; ?>
     </ul>
     <?php if ($project['status'] !== 'cancelled'): ?>
         <form method="post" onsubmit="return confirm('ยืนยันยกเลิกโครงงานนี้?');">
@@ -81,11 +94,12 @@ require __DIR__ . '/../../src/partials/header.php';
 </form>
 
 <table class="table table-bordered bg-white">
-    <thead><tr><th>โครงงาน</th><th>ที่ปรึกษา</th><th>วันสอบ</th><th>สถานะ</th><th></th></tr></thead>
+    <thead><tr><th>โครงงาน</th><th>ประเภทสอบ</th><th>ที่ปรึกษา</th><th>วันสอบ</th><th>สถานะ</th><th></th></tr></thead>
     <tbody>
     <?php foreach ($allProjects as $p): ?>
         <tr>
             <td><?= h($p['title']) ?></td>
+            <td><?= h(exam_type_label($p['exam_type'])) ?></td>
             <td><?= h($p['advisor_name']) ?></td>
             <td><?= h($p['exam_date']) ?></td>
             <td><span class="badge <?= project_status_badge_class($p['status']) ?>"><?= h(project_status_label($p['status'])) ?></span></td>
@@ -93,7 +107,7 @@ require __DIR__ . '/../../src/partials/header.php';
         </tr>
     <?php endforeach; ?>
     <?php if (!$allProjects): ?>
-        <tr><td colspan="5" class="text-center text-muted">ไม่พบข้อมูล</td></tr>
+        <tr><td colspan="6" class="text-center text-muted">ไม่พบข้อมูล</td></tr>
     <?php endif; ?>
     </tbody>
 </table>

@@ -15,18 +15,24 @@ $otherStudents = array_values(array_filter(
 ));
 
 $errors = [];
-$old = ['title' => '', 'exam_day_id' => '', 'advisor_teacher_id' => '', 'member_ids' => []];
+$old = ['title' => '', 'exam_type' => '', 'exam_day_id' => '', 'advisor_teacher_id' => '', 'member_ids' => []];
 
 if (is_post()) {
     csrf_check_or_die();
 
     $old['title'] = post('title');
+    $old['exam_type'] = post('exam_type');
     $old['exam_day_id'] = post('exam_day_id');
     $old['advisor_teacher_id'] = post('advisor_teacher_id');
     $old['member_ids'] = array_map('intval', $_POST['member_ids'] ?? []);
 
     $examDayId = (int)$old['exam_day_id'];
     $advisorId = (int)$old['advisor_teacher_id'];
+
+    // ตรวจประเภทการสอบ
+    if (!in_array($old['exam_type'], EXAM_TYPES, true)) {
+        $errors[] = 'กรุณาเลือกประเภทการสอบ';
+    }
 
     // ตรวจ exam day
     $examDay = exam_days_find($pdo, $examDayId);
@@ -92,6 +98,7 @@ if (is_post()) {
             $projectId = projects_create(
                 $pdo,
                 $old['title'],
+                $old['exam_type'],
                 $advisorId,
                 $examDayId,
                 $user['id'],
@@ -134,6 +141,18 @@ require __DIR__ . '/../../src/partials/header.php';
     <div class="mb-3">
         <label class="form-label">ชื่อโครงงาน</label>
         <input type="text" name="title" class="form-control" value="<?= h($old['title']) ?>" required>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">ประเภทการสอบ</label>
+        <select name="exam_type" class="form-select" required>
+            <option value="">-- เลือกประเภทการสอบ --</option>
+            <?php foreach (EXAM_TYPES as $type): ?>
+                <option value="<?= h($type) ?>" <?= $type === $old['exam_type'] ? 'selected' : '' ?>>
+                    <?= h(exam_type_label($type)) ?>
+                </option>
+            <?php endforeach; ?>
+        </select>
     </div>
 
     <div class="mb-3">
