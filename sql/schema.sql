@@ -7,6 +7,10 @@ CREATE DATABASE IF NOT EXISTS present_registration
 
 USE present_registration;
 
+-- บังคับให้ client ตีความไฟล์นี้เป็น UTF-8 เสมอ ไม่งั้นบางเครื่อง (โดยเฉพาะ Windows) mysql client
+-- จะเดา charset อื่นแทน ทำให้ข้อความภาษาไทยใน INSERT (เกณฑ์ประเมินท้ายไฟล์) ถูกเก็บเพี้ยน (double-encoded)
+SET NAMES utf8mb4;
+
 CREATE TABLE users (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     role ENUM('admin','teacher','student') NOT NULL,
@@ -42,6 +46,7 @@ CREATE TABLE projects (
     report_docx_path VARCHAR(255) NOT NULL,
     presentation_pptx_path VARCHAR(255) NOT NULL,
     status ENUM('pending','approved','rejected','cancelled') NOT NULL DEFAULT 'pending',
+    evaluation_notes TEXT NULL,
     rejected_reason VARCHAR(500) NULL,
     approved_at DATETIME NULL,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,

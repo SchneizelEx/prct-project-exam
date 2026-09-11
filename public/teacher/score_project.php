@@ -45,8 +45,11 @@ if (is_post()) {
     }
 
     if (!$errors) {
-        evaluation_scores_save($pdo, $projectId, $criterionScores, $user['id']);
-        flash_set('success', 'บันทึกคะแนนเรียบร้อยแล้ว');
+        if ($criterionScores) {
+            evaluation_scores_save($pdo, $projectId, $criterionScores, $user['id']);
+        }
+        projects_set_evaluation_notes($pdo, $projectId, post('notes'));
+        flash_set('success', 'บันทึกคะแนนและบันทึกเพิ่มเติมเรียบร้อยแล้ว');
         redirect(base_url('teacher/score_project.php?project_id=' . $projectId));
     }
 }
@@ -97,9 +100,13 @@ require __DIR__ . '/../../src/partials/header.php';
 
     <p>คะแนนรวมปัจจุบัน: <strong><?= $total !== null ? $total : '-' ?>/<?= EVALUATION_TOTAL_SCORE ?></strong></p>
 
-    <?php if ($criteria): ?>
-        <button type="submit" class="btn btn-primary">บันทึกคะแนน</button>
-    <?php endif; ?>
+    <div class="mb-3">
+        <label class="form-label">บันทึกเพิ่มเติมของคณะกรรมการ (ถ้ามี)</label>
+        <textarea name="notes" class="form-control" rows="8" placeholder="ข้อสังเกต ข้อเสนอแนะ หรือประเด็นที่ต้องแก้ไขหลังการนำเสนอ"><?= h($project['evaluation_notes']) ?></textarea>
+        <div class="form-text">กรรมการทุกคนที่ได้รับมอบหมายวันนี้เห็นและแก้ไขข้อความนี้ร่วมกันได้ (พิมพ์ยาวได้ไม่จำกัด)</div>
+    </div>
+
+    <button type="submit" class="btn btn-primary">บันทึก</button>
     <a href="<?= base_url('teacher/exam_scores.php') ?>" class="btn btn-link">กลับไปหน้ารายการ</a>
 </form>
 <?php require __DIR__ . '/../../src/partials/footer.php'; ?>

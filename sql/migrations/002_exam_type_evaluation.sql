@@ -4,6 +4,10 @@
 
 USE present_registration;
 
+-- บังคับให้ client ตีความไฟล์นี้เป็น UTF-8 เสมอ ไม่งั้นบางเครื่อง (โดยเฉพาะ Windows) mysql client
+-- จะเดา charset อื่นแทน ทำให้ข้อความภาษาไทยใน INSERT ด้านล่างถูกเก็บเพี้ยน (double-encoded)
+SET NAMES utf8mb4;
+
 ALTER TABLE projects
     ADD COLUMN exam_type ENUM('topic','progress','final') NOT NULL DEFAULT 'final' AFTER title;
 -- DEFAULT 'final' ใช้เฉพาะ migrate ข้อมูลเก่าที่ยังไม่มีประเภทระบุ

@@ -56,6 +56,12 @@ if ($detailId > 0) {
                 <?php endif; ?>
                 <a href="<?= base_url('teacher/score_project.php?project_id=' . $project['id']) ?>" class="ms-2">ดู/แก้ไขคะแนน</a>
             </li>
+            <?php if (!empty($project['evaluation_notes'])): ?>
+                <li class="list-group-item">
+                    บันทึกเพิ่มเติมของคณะกรรมการ:
+                    <div class="mt-1" style="white-space: pre-wrap;"><?= h($project['evaluation_notes']) ?></div>
+                </li>
+            <?php endif; ?>
         <?php endif; ?>
     </ul>
     <?php if ($project['status'] !== 'cancelled'): ?>

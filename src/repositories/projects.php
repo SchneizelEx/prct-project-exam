@@ -191,6 +191,15 @@ function projects_cancel(PDO $pdo, int $id): void
     $stmt->execute([$id]);
 }
 
+/**
+ * บันทึกเพิ่มเติมของคณะกรรมการสอบ (ข้อความยาวได้) แก้ไขทับกันได้เหมือนคะแนน
+ */
+function projects_set_evaluation_notes(PDO $pdo, int $id, string $notes): void
+{
+    $stmt = $pdo->prepare('UPDATE projects SET evaluation_notes = ? WHERE id = ?');
+    $stmt->execute([$notes !== '' ? $notes : null, $id]);
+}
+
 function project_status_label(string $status): string
 {
     return match ($status) {
